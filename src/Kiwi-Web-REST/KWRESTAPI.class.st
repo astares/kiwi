@@ -13,13 +13,13 @@ Class {
 KWRESTAPI class >> authenticate: aRequest [
 	<REST_API: 'POST' versions: #('v1') pattern: 'authenticate'>
 	
-	|user pwd |
-	user := aRequest entity at: #user ifAbsent: [ ^ZnResponse badRequest: aRequest ].
-	pwd  := aRequest entity at: #password ifAbsent: [ ^ZnResponse badRequest: aRequest ].
+	|user pwd credentials|
+	credentials := STON fromString: aRequest entity.
+	user := credentials at: #username ifAbsent: [ ^ZnResponse badRequest: aRequest ].
+	pwd  := credentials at: #password ifAbsent: [ ^ZnResponse badRequest: aRequest ].
 	(self authenticate: user with: pwd)
 		ifFalse: [ ^self unauthorized ].
 	^ZnResponse ok: (ZnEntity text: self validToken).
-	
 	
 ]
 
@@ -35,7 +35,6 @@ KWRESTAPI class >> foo: aRequest [
 	
 	^ZnResponse ok: (ZnEntity text: 'foo').
 	
-	
 ]
 
 { #category : #'private - testing' }
@@ -44,7 +43,6 @@ KWRESTAPI class >> hasValidAccessToken: aRequest [
 	|token|
 	token := aRequest headers at: 'x-access-token' ifAbsent: [ ^false ].
 	^self isValidAccessToken: token.
-	
 ]
 
 { #category : #building }
@@ -58,7 +56,6 @@ KWRESTAPI class >> isValidAccessToken: token [
 	"Return true if the given token is a valid access token"
 	
 	^token = self validToken
-	
 ]
 
 { #category : #building }
@@ -70,7 +67,6 @@ KWRESTAPI class >> rebuild [
 		before: '/api/*' -> [ :req | (req uri path = 'api/v1/authenticate') ifFalse: [ (self hasValidAccessToken: req) ifFalse: [ req abort: (self unauthorized) ] ]];
 		serveStatic: '/' from: self staticFileDirectory.
 	TLWebserver teapot inspect
-	 
 ]
 
 { #category : #'private - accessing' }
