@@ -45,6 +45,12 @@ KWRESTAPI class >> hasValidAccessToken: aRequest [
 	^self isValidAccessToken: token.
 ]
 
+{ #category : #initialization }
+KWRESTAPI class >> initialize [
+
+	self rebuild 
+]
+
 { #category : #'private - testing' }
 KWRESTAPI class >> isValidAccessToken: token [
 	"Return true if the given token is a valid access token"
@@ -54,13 +60,13 @@ KWRESTAPI class >> isValidAccessToken: token [
 
 { #category : #building }
 KWRESTAPI class >> rebuild [
-	<script>
+	<script: 'self initialize. TLWebserver teapot inspect'>
 	TLWebserver teapot removeAllDynamicRoutes.
 	TLRESTAPIBuilder buildAPI.
 	TLWebserver teapot  
 		before: '/api/*' -> [ :req | (req uri path = 'api/v1/authenticate') ifFalse: [ (self hasValidAccessToken: req) ifFalse: [ req abort: (self unauthorized) ] ]];
 		serveStatic: '/' from: self staticFileDirectory.
-	TLWebserver teapot inspect
+	
 ]
 
 { #category : #'private - accessing' }
