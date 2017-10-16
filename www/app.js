@@ -28,6 +28,8 @@
             })
 
             .otherwise({ redirectTo: '/login' });
+			
+		$locationProvider.html5Mode(true); //activate HTML5 Mode	
     }
 
     run.$inject = ['$rootScope', '$location', '$cookies', '$http'];
