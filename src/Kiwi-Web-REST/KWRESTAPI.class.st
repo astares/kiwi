@@ -14,13 +14,14 @@ KWRESTAPI class >> authenticate: aRequest [
 	<REST_API: 'POST' versions: #('v1') pattern: 'authenticate'>
 	
 	|user pwd credentials|
-	credentials := STON fromString: aRequest entity.
+	[ credentials := STON fromString: aRequest entity ]
+		on: Error
+		do: [ ^ZnResponse badRequest: aRequest ].	
 	user := credentials at: #username ifAbsent: [ ^ZnResponse badRequest: aRequest ].
 	pwd  := credentials at: #password ifAbsent: [ ^ZnResponse badRequest: aRequest ].
 	(self authenticate: user with: pwd)
 		ifFalse: [ ^self unauthorized ].
 	^ZnResponse ok: (ZnEntity text: self validToken).
-	
 ]
 
 { #category : #private }
@@ -34,7 +35,6 @@ KWRESTAPI class >> foo: aRequest [
 	<REST_API: 'GET' versions: #('v1') pattern: 'foo'>
 	
 	^ZnResponse ok: (ZnEntity text: 'foo').
-	
 ]
 
 { #category : #'private - testing' }
@@ -43,12 +43,6 @@ KWRESTAPI class >> hasValidAccessToken: aRequest [
 	|token|
 	token := aRequest headers at: 'x-access-token' ifAbsent: [ ^false ].
 	^self isValidAccessToken: token.
-]
-
-{ #category : #building }
-KWRESTAPI class >> homepage [
-
-	^'<h1>Hello</h1>'
 ]
 
 { #category : #'private - testing' }
@@ -80,7 +74,8 @@ KWRESTAPI class >> staticFileDirectory [
 
 { #category : #'private - accessing' }
 KWRESTAPI class >> unauthorized [ 
-	^ZnResponse unauthorized: 'Basic realm=Kiwi'
+	^(ZnResponse statusLine: ZnStatusLine unauthorized)
+			entity: (ZnEntity textCRLF: '{ "succcess" : false, "message" : "You are not authorized to access this service." }')
 ]
 
 { #category : #'private - accessing' }
