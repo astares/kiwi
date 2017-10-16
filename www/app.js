@@ -35,7 +35,7 @@
         // keep user logged in after page refresh
         $rootScope.globals = $cookies.getObject('globals') || {};
         if ($rootScope.globals.currentUser) {
-            $http.defaults.headers.common['Authorization'] = 'Basic ' + $rootScope.globals.currentUser.authdata;
+            $http.defaults.headers.common['x-access-token'] = $rootScope.globals.currentUser.authdata;
         }
 
         $rootScope.$on('$locationChangeStart', function (event, next, current) {
