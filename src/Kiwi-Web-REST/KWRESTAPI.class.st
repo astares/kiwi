@@ -6,10 +6,10 @@ Following https://scotch.io/tutorials/authenticate-a-node-js-api-with-json-web-t
 Class {
 	#name : #KWRESTAPI,
 	#superclass : #Object,
-	#category : 'Kiwi-Web-REST'
+	#category : #Kiwi-Web-REST
 }
 
-{ #category : #api }
+{ #category : #'api - authorization' }
 KWRESTAPI class >> authenticate: aRequest [
 	<REST_API: 'POST' versions: #('v1') pattern: 'authenticate'>
 	
@@ -30,6 +30,19 @@ KWRESTAPI class >> authenticate: user with: pwd [
 	^user = 'admin' & (pwd = '123')
 ]
 
+{ #category : #'api - users' }
+KWRESTAPI class >> createUser: aRequest [
+	<REST_API: 'POST' versions: #('v1') pattern: 'users'>
+	
+	| userData |
+	[ userData := STON fromString: aRequest entity ]
+		on: Error
+		do: [ ^ZnResponse badRequest: aRequest ].
+		
+	"Create a user from the user data"	
+	userData halt.	
+]
+
 { #category : #api }
 KWRESTAPI class >> foo: aRequest [
 	<REST_API: 'GET' versions: #('v1') pattern: 'foo'>
@@ -48,7 +61,7 @@ KWRESTAPI class >> hasValidAccessToken: aRequest [
 { #category : #initialization }
 KWRESTAPI class >> initialize [
 
-	self rebuild 
+	self rebuild
 ]
 
 { #category : #'private - testing' }
@@ -61,12 +74,36 @@ KWRESTAPI class >> isValidAccessToken: token [
 { #category : #building }
 KWRESTAPI class >> rebuild [
 	<script: 'self initialize. TLWebserver teapot inspect'>
-	TLWebserver teapot removeAllDynamicRoutes.
+	self resetWebserver.
+		
 	TLRESTAPIBuilder buildAPI.
-	TLWebserver teapot  
-		before: '/api/*' -> [ :req | (req uri path = 'api/v1/authenticate') ifFalse: [ (self hasValidAccessToken: req) ifFalse: [ req abort: (self unauthorized) ] ]];
-		serveStatic: '/' from: self staticFileDirectory.
 	
+	"Add a filter to the API so it is secured and serve static files from the projects www folder"
+	
+	TLWebserver teapot  
+		before: '/api/*' -> [ :req | 
+			(self requestIsAllowedWithoutCredentials: req) 
+				ifFalse: [ (self hasValidAccessToken: req) ifFalse: [ req abort: (self unauthorized) ] ]];
+		serveStatic: '/' from: self staticFileDirectory.
+]
+
+{ #category : #'private - testing' }
+KWRESTAPI class >> requestIsAllowedWithoutCredentials: req [
+	"We allow authentication as well as registration. All other requests need an access token"
+	
+	| allowedPaths |
+	allowedPaths := #('api/v1/authenticate' 'api/v1/users').
+	^(allowedPaths includes: req uri path) and: [ req method = 'POST' ]
+]
+
+{ #category : #'private - utilities' }
+KWRESTAPI class >> resetWebserver [
+	"Reset the webserver by removing all installed routes and filters"
+	
+	TLWebserver teapot 
+		removeAllDynamicRoutes;
+		removeAllBeforeFilters;
+		removeAllAfterFilters.
 ]
 
 { #category : #'private - accessing' }
