@@ -33,6 +33,12 @@ KWUserManagement >> addUser: aUser [
 	^self users add: aUser
 ]
 
+{ #category : #testing }
+KWUserManagement >> hasUserWithUsername: aUsername [
+
+	^self users anySatisfy: [:el | el username = aUsername ]
+]
+
 { #category : #'private - accessing' }
 KWUserManagement >> users [
 	"Return the collection of users"
