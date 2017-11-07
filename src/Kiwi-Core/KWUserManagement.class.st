@@ -1,5 +1,5 @@
 "
-The usermanagement
+The usermanagement 
 "
 Class {
 	#name : #KWUserManagement,
@@ -35,5 +35,7 @@ KWUserManagement >> addUser: aUser [
 
 { #category : #'private - accessing' }
 KWUserManagement >> users [
+	"Return the collection of users"
+	
 	^users ifNil: [ users := OrderedCollection new ]
 ]

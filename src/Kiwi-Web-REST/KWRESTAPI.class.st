@@ -34,13 +34,17 @@ KWRESTAPI class >> authenticate: user with: pwd [
 KWRESTAPI class >> createUser: aRequest [
 	<REST_API: 'POST' versions: #('v1') pattern: 'users'>
 	
-	| userData |
+	| userData newUser |
 	[ userData := STON fromString: aRequest entity ]
 		on: Error
 		do: [ ^ZnResponse badRequest: aRequest ].
 		
-	"Create a user from the user data"	
-	userData halt.	
+	"Create a user from the user data"
+	newUser := KWUser named: (userData at: 'username' ifAbsent: '').
+
+	self flag: 'Check for double creation later too'.
+
+	KWUserManagement default addUser: newUser. 
 ]
 
 { #category : #api }

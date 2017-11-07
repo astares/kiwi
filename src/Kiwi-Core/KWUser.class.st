@@ -51,6 +51,12 @@ KWUser >> lastName: anObject [
 	lastName := anObject
 ]
 
+{ #category : #printing }
+KWUser >> printOn: aStream [
+	self username ifNil: [ ^super printOn: aStream ].
+	aStream << self username 
+]
+
 { #category : #accessing }
 KWUser >> username [
 	^ username
